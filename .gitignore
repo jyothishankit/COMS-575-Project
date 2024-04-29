@@ -4,3 +4,4 @@ Scripts/
 bin/
 lib/
 share/
+model_epoch_checkpoints/
