@@ -1,7 +1,6 @@
 import torch
 import torch.nn.functional as F
 from model_utils import *
-from einops import rearrange
 from einops.layers.torch import Rearrange
 
 

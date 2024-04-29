@@ -7,27 +7,8 @@ import torch
 from utils import power_compress, power_uncompress
 import logging
 from torchinfo import summary
-import argparse
+from constants import *
 
-import torch.multiprocessing as mp
-from torch.nn.parallel import DistributedDataParallel as DDP
-from torch.distributed import init_process_group, destroy_process_group
-
-parser = argparse.ArgumentParser()
-#parser.add_argument("--epochs", type=int, default=120, help="number of epochs of training")
-#parser.add_argument("--batch_size", type=int, default=4)
-#parser.add_argument("--log_interval", type=int, default=500)
-#parser.add_argument("--decay_epoch", type=int, default=30, help="epoch from which to start lr decay")
-parser.add_argument("--init_lr", type=float, default=5e-4, help="initial learning rate")
-parser.add_argument("--cut_len", type=int, default=16000*2, help="cut length, default is 2 seconds in denoise "
-                                                                 "and dereverberation")
-parser.add_argument("--data_dir", type=str, default='dir to VCTK-DEMAND dataset',
-                    help="dir of VCTK+DEMAND dataset")
-parser.add_argument("--save_model_dir", type=str, default='./saved_model',
-                    help="dir of saved model")
-parser.add_argument("--loss_weights", type=list, default=[0.1, 0.9, 0.2, 0.05],
-                    help="weights of RI components, magnitude, time loss, and Metric Disc")
-args = parser.parse_args()
 logging.basicConfig(level=logging.INFO)
 
 
@@ -39,24 +20,21 @@ class Trainer:
         self.test_ds = test_ds
         self.model = TSCNet(num_channel=64, num_features=self.n_fft // 2 + 1).cuda()
         summary(
-            self.model, [(1, 2, args.cut_len // self.hop + 1, int(self.n_fft / 2) + 1)]
+            self.model, [(1, 2, CUT_LENGTH_CONSTANT // self.hop + 1, int(self.n_fft / 2) + 1)]
         )
         self.discriminator = discriminator.Discriminator(ndf=16).cuda()
         summary(
             self.discriminator,
             [
-                (1, 1, int(self.n_fft / 2) + 1, args.cut_len // self.hop + 1),
-                (1, 1, int(self.n_fft / 2) + 1, args.cut_len // self.hop + 1),
+                (1, 1, int(self.n_fft / 2) + 1, CUT_LENGTH_CONSTANT // self.hop + 1),
+                (1, 1, int(self.n_fft / 2) + 1, CUT_LENGTH_CONSTANT // self.hop + 1),
             ],
         )
         self.optimizer = torch.optim.AdamW(self.model.parameters(), lr=INITIAL_LEARNING_RATE_CONSTANT)
         self.optimizer_disc = torch.optim.AdamW(
             self.discriminator.parameters(), lr=2 * INITIAL_LEARNING_RATE_CONSTANT
         )
-
-        self.model = DDP(self.model, device_ids=[gpu_id])
-        self.discriminator = DDP(self.discriminator, device_ids=[gpu_id])
-        self.gpu_id = gpu_id
+        self.gpu_id = 0
 
     def forward_generator_step(self, clean, noisy):
 
@@ -131,10 +109,10 @@ class Trainer:
         )
 
         loss = (
-            args.loss_weights[0] * loss_ri
-            + args.loss_weights[1] * loss_mag
-            + args.loss_weights[2] * time_loss
-            + args.loss_weights[3] * gen_loss_GAN
+            TOTAL_LOSS_WEIGHTS_CONSTANT[0] * loss_ri
+            + TOTAL_LOSS_WEIGHTS_CONSTANT[1] * loss_mag
+            + TOTAL_LOSS_WEIGHTS_CONSTANT[2] * time_loss
+            + TOTAL_LOSS_WEIGHTS_CONSTANT[3] * gen_loss_GAN
         )
 
         return loss
@@ -253,30 +231,30 @@ class Trainer:
                     )
             gen_loss = self.test()
             path = os.path.join(
-                args.save_model_dir,
+                SAVE_MODEL_DIRECTORY_CONSTANT,
                 "CMGAN_epoch_" + str(epoch) + "_" + str(gen_loss)[:5],
             )
-            if not os.path.exists(args.save_model_dir):
-                os.makedirs(args.save_model_dir)
+            if not os.path.exists(SAVE_MODEL_DIRECTORY_CONSTANT):
+                os.makedirs(SAVE_MODEL_DIRECTORY_CONSTANT)
             if self.gpu_id == 0:
                 torch.save(self.model.module.state_dict(), path)
             scheduler_G.step()
             scheduler_D.step()
 
 
-def main(rank: int, world_size: int, args):
+def main():
     available_gpus = [
         torch.cuda.get_device_name(i) for i in range(torch.cuda.device_count())
     ]
     print(available_gpus)
     train_ds, test_ds = dataloader.load_data(
-        args.data_dir, BATCH_SIZE_CONSTANT, 2, args.cut_len
+        TRAINING_DATA_DIRECTORY_CONSTANT, BATCH_SIZE_CONSTANT, 2, CUT_LENGTH_CONSTANT
     )
-    trainer = Trainer(train_ds, test_ds, rank)
+    trainer = Trainer(train_ds, test_ds, 0)
     trainer.train()
 
 
 if __name__ == "__main__":
     world_size = torch.cuda.device_count()
     print(world_size)
-    mp.spawn(main, args=(world_size, args), nprocs=world_size)
+    main()
