@@ -30,7 +30,7 @@ class Trainer:
         num_channel = 64
         self.model = TSCNet(num_channel=num_channel, num_features=self.n_fft // 2 + 1).cuda()
         summary(
-            self.model, [(1, 2, CUT_LENGTH_CONSTANT // self.hop + 1, int(self.n_fft / 2) + 1)]
+            self.model, [(1, 2, CUT_LENGTH // self.hop + 1, int(self.n_fft / 2) + 1)]
         )
 
     def setup_discriminator(self):
@@ -38,15 +38,15 @@ class Trainer:
         summary(
             self.discriminator,
             [
-                (1, 1, int(self.n_fft / 2) + 1, CUT_LENGTH_CONSTANT // self.hop + 1),
-                (1, 1, int(self.n_fft / 2) + 1, CUT_LENGTH_CONSTANT // self.hop + 1),
+                (1, 1, int(self.n_fft / 2) + 1, CUT_LENGTH // self.hop + 1),
+                (1, 1, int(self.n_fft / 2) + 1, CUT_LENGTH // self.hop + 1),
             ],
         )
 
     def setup_optimizers(self):
-        self.optimizer = torch.optim.AdamW(self.model.parameters(), lr=INITIAL_LEARNING_RATE_CONSTANT)
+        self.optimizer = torch.optim.AdamW(self.model.parameters(), lr=INITIAL_LEARNING_RATE)
         self.optimizer_disc = torch.optim.AdamW(
-            self.discriminator.parameters(), lr=2 * INITIAL_LEARNING_RATE_CONSTANT
+            self.discriminator.parameters(), lr=2 * INITIAL_LEARNING_RATE
         )
 
 
@@ -121,10 +121,10 @@ class Trainer:
         time_loss = self._calculate_time_loss(generator_outputs)
     
         total_loss = (
-            TOTAL_LOSS_WEIGHTS_CONSTANT[0] * ri_loss +
-            TOTAL_LOSS_WEIGHTS_CONSTANT[1] * mag_loss +
-            TOTAL_LOSS_WEIGHTS_CONSTANT[2] * time_loss +
-            TOTAL_LOSS_WEIGHTS_CONSTANT[3] * gan_loss
+            TOTAL_LOSS_WEIGHTS[0] * ri_loss +
+            TOTAL_LOSS_WEIGHTS[1] * mag_loss +
+            TOTAL_LOSS_WEIGHTS[2] * time_loss +
+            TOTAL_LOSS_WEIGHTS[3] * gan_loss
         )
     
         return total_loss
@@ -193,7 +193,7 @@ class Trainer:
         clean_audio, noisy_audio = self._prepare_batch(batch)
 
         generator_outputs = self._generate_outputs(clean_audio, noisy_audio)
-        generator_outputs["one_labels"] = torch.ones(BATCH_SIZE_CONSTANT).to(self.gpu_id)
+        generator_outputs["one_labels"] = torch.ones(BATCH_SIZE).to(self.gpu_id)
         generator_outputs["clean"] = clean_audio
 
         generator_loss = self._calculate_generator_loss(generator_outputs)
@@ -237,7 +237,7 @@ class Trainer:
         clean_audio, noisy_audio = self._prepare_batch(batch)
 
         generator_outputs = self._generate_outputs(clean_audio, noisy_audio)
-        generator_outputs["one_labels"] = torch.ones(BATCH_SIZE_CONSTANT).to(self.gpu_id)
+        generator_outputs["one_labels"] = torch.ones(BATCH_SIZE).to(self.gpu_id)
         generator_outputs["clean"] = clean_audio
 
         generator_loss = self._calculate_generator_loss(generator_outputs)
@@ -291,7 +291,7 @@ class Trainer:
         scheduler_G = self._create_scheduler(self.optimizer)
         scheduler_D = self._create_scheduler(self.optimizer_disc)
     
-        for epoch in range(EPOCHS_CONSTANT):
+        for epoch in range(EPOCHS):
             self._set_model_to_train_mode()
             for index, batch in enumerate(self.train_ds):
                 loss, disc_loss = self.train_step(batch)
@@ -305,7 +305,7 @@ class Trainer:
 
     def _create_scheduler(self, optimizer):
         return torch.optim.lr_scheduler.StepLR(
-            optimizer, step_size=DECAY_EPOCH_INTERVAL_CONSTANT, gamma=0.5
+            optimizer, step_size=DECAY_EPOCH_INTERVAL, gamma=0.5
         )
 
     def _set_model_to_train_mode(self):
@@ -314,15 +314,15 @@ class Trainer:
 
     def _log_training_progress(self, epoch, step, loss, disc_loss):
         template = "GPU: {}, Epoch {}, Step {}, loss: {}, disc_loss: {}"
-        if (step % LOGS_INTERVAL_CONSTANT) == 0:
+        if (step % LOGS_INTERVAL) == 0:
             logging.info(template.format(self.gpu_id, epoch, step, loss, disc_loss))
 
     def _save_model(self, epoch, gen_loss):
         path = os.path.join(
-            SAVE_MODEL_DIRECTORY_CONSTANT,
+            SAVE_MODEL_DIRECTORY,
             f"CMGAN_epoch_{epoch}_{gen_loss:.5f}"
         )
-        os.makedirs(SAVE_MODEL_DIRECTORY_CONSTANT, exist_ok=True)
+        os.makedirs(SAVE_MODEL_DIRECTORY, exist_ok=True)
         if self.gpu_id == 0:
             torch.save(self.model.module.state_dict(), path)
 
@@ -343,7 +343,7 @@ def get_available_gpus():
 
 def load_dataset():
     train_ds, test_ds = dataloader.load_data(
-        TRAINING_DATA_DIRECTORY_CONSTANT, BATCH_SIZE_CONSTANT, 2, CUT_LENGTH_CONSTANT
+        TRAINING_DATA_DIRECTORY, BATCH_SIZE, 2, CUT_LENGTH
     )
     return train_ds, test_ds
 

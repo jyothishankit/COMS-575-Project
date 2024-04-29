@@ -1,6 +1,11 @@
-LOGS_INTERVAL_CONSTANT = 500
-#Logs interval
-SAVE_MODEL_DIRECTORY_CONSTANT = './model_epoch_checkpoints'
-#Directory to store models for each epoch
-TRAINING_DATA_DIRECTORY_CONSTANT = './data/VCTK-CONVERTED/'
-#Training directory
+#####TRAINING ARGUMENTS
+
+LOGS_INTERVAL = 500
+SAVE_MODEL_DIRECTORY = './model_epoch_checkpoints'
+TRAINING_DATA_DIRECTORY = './dataset/VCTK-CONVERTED/'
+
+#####EVALUATION ARGUMENTS
+EVALUATION_MODEL_PATH = './best_model_epoch/ckpt_80'
+EVALUATION_TEST_DIRECTORY = './dataset/VCTK-DEMAND/test'
+EVALUATION_SAVE_GENERATED_TRACKS_FLAG = True
+EVALUATION_SAVE_GENERATED_TRACKS_DIRECTORY = './saved_tracks_best'

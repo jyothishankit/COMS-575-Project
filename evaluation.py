@@ -59,7 +59,7 @@ def enhance_one_track(
     return est_audio, length
 
 
-def evaluation(model_path, noisy_dir, clean_dir, save_tracks, saved_dir):
+def evaluate(model_path, noisy_dir, clean_dir, save_tracks, saved_dir):
     n_fft = 400
     model = generator.TSCNet(num_channel=64, num_features=n_fft // 2 + 1).cuda()
     model.load_state_dict((torch.load(model_path)))
@@ -103,6 +103,6 @@ args = parser.parse_args()
 
 
 if __name__ == "__main__":
-    noisy_dir = os.path.join(args.test_dir, "noisy")
-    clean_dir = os.path.join(args.test_dir, "clean")
-    evaluation(args.model_path, noisy_dir, clean_dir, args.save_tracks, args.save_dir)
+    noisy_dir = os.path.join(EVALUATION_TEST_DIRECTORY, "noisy")
+    clean_dir = os.path.join(EVALUATION_TEST_DIRECTORY, "clean")
+    evaluate(EVALUATION_MODEL_PATH, noisy_dir, clean_dir, EVALUATION_SAVE_GENERATED_TRACKS_FLAG, EVALUATION_SAVE_GENERATED_TRACKS_DIRECTORY)

@@ -1,7 +1,7 @@
 from models.conformer import ConformerBlock
 import torch
 import torch.nn as nn
-from hyperparameters import *
+from dimensions import *
 
 class DilatedDenseNet(nn.Module):
     def __init__(self, depth=4, in_channels=64):

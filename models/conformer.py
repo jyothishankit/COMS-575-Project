@@ -2,7 +2,7 @@ import torch.nn.functional as F
 from einops.layers.torch import Rearrange
 import torch.nn as nn
 from utils import *
-from hyperparameters import *
+from dimensions import *
 
 # attention, feedforward, and conv module
 
