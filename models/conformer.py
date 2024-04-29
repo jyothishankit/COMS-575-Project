@@ -1,8 +1,8 @@
 import torch
 import torch.nn.functional as F
-from model_utils import *
 from einops.layers.torch import Rearrange
-
+import torch.nn as nn
+from utils import *
 
 class DepthWiseConv1d(nn.Module):
     def __init__(self, chan_in, chan_out, kernel_size, padding):
