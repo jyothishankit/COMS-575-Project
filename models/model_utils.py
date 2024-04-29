@@ -57,15 +57,11 @@ class PreNorm(nn.Module):
 
 def metric_score_loss(clean, noisy, sr=16000):
     try:
-        #pesq = PesqLoss(0.5, sr)
-        #metric_score_score = pesq.mos(clean,noisy)
         metrics = compute_metrics(clean, noisy, sr, 0)
         metrics = np.array(metrics)
         
     except:
-        print("Error in pesq calculation")
-        # error can happen due to silent period
-        #metric_score_score = -1
+        print("Error in SSNR and STOI calculation")
     return metrics[4]+metrics[5]
 
 
