@@ -58,6 +58,7 @@ class Trainer:
         est_real, est_imag = self._model_inference(noisy_spec_compressed)
         est_mag = self._compute_magnitude(est_real, est_imag)
         est_audio = self._compute_estimated_audio(est_real, est_imag)
+        clean_mag = self._compute_magnitude(clean_real, clean_imag)
         return {
             "est_real": est_real,
             "est_imag": est_imag,
@@ -118,10 +119,10 @@ class Trainer:
         time_loss = self._calculate_time_loss(generator_outputs)
     
         total_loss = (
-            TOTAL_LOSS_WEIGHTS[0] * ri_loss +
-            TOTAL_LOSS_WEIGHTS[1] * mag_loss +
-            TOTAL_LOSS_WEIGHTS[2] * time_loss +
-            TOTAL_LOSS_WEIGHTS[3] * gan_loss
+            TOTAL_LOSS_WEIGHTS_CONSTANT[0] * ri_loss +
+            TOTAL_LOSS_WEIGHTS_CONSTANT[1] * mag_loss +
+            TOTAL_LOSS_WEIGHTS_CONSTANT[2] * time_loss +
+            TOTAL_LOSS_WEIGHTS_CONSTANT[3] * gan_loss
         )
     
         return total_loss

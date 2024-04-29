@@ -296,3 +296,13 @@ class Attention(nn.Module):
     def _apply_attention(self, attn, v):
         return einsum("b h i j, b h j d -> b h i d", attn, v).contiguous()
 
+
+class DepthWiseConv1d(nn.Module):
+    def __init__(self, chan_in, chan_out, kernel_size, padding):
+        super().__init__()
+        self.padding = padding
+        self.conv = nn.Conv1d(chan_in, chan_out, kernel_size, groups=chan_in)
+
+    def forward(self, x):
+        x = F.pad(x, self.padding)
+        return self.conv(x)
