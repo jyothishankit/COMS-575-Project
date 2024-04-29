@@ -1,4 +1,3 @@
-import torch
 import torch.nn.functional as F
 from einops.layers.torch import Rearrange
 import torch.nn as nn
@@ -38,7 +37,6 @@ class FeedForward(nn.Module):
             nn.Linear(dim * mult, dim),
             nn.Dropout(dropout),
         )
-
     def forward(self, x):
         return self.net(x)
 
@@ -48,10 +46,8 @@ class ConformerConvModule(nn.Module):
         self, dim, causal=False, expansion_factor=2, kernel_size=31, dropout=0.0
     ):
         super().__init__()
-
         inner_dim = dim * expansion_factor
         padding = calc_same_padding(kernel_size) if not causal else (kernel_size - 1, 0)
-
         self.net = nn.Sequential(
             nn.LayerNorm(dim),
             Rearrange("b n c -> b c n"),
@@ -101,11 +97,9 @@ class ConformerBlock(nn.Module):
             dropout=conv_dropout,
         )
         self.ff2 = FeedForward(dim=dim, mult=ff_mult, dropout=ff_dropout)
-
         self.attn = PreNorm(dim, self.attn)
         self.ff1 = Scale(0.5, PreNorm(dim, self.ff1))
         self.ff2 = Scale(0.5, PreNorm(dim, self.ff2))
-
         self.post_norm = nn.LayerNorm(dim)
 
     def forward(self, x, mask=None):

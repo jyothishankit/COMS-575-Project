@@ -1,7 +1,5 @@
 import numpy as np
 from scipy.io import wavfile
-from scipy.linalg import toeplitz, norm
-from scipy.fftpack import fft
 import math
 from scipy import signal
 

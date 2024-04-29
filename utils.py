@@ -44,16 +44,7 @@ def power_uncompress(real, imag):
     return torch.stack([real_compress, imag_compress], -1)
 
 
-class LearnableSigmoid(nn.Module):
-    def __init__(self, in_features, beta=1):
-        super().__init__()
-        self.beta = beta
-        self.slope = nn.Parameter(torch.ones(in_features))
-        self.slope.requiresGrad = True
-
-    def forward(self, x):
-        return self.beta * torch.sigmoid(self.slope * x)
-
+#####Helper methods
 def exists(val):
     return val is not None
 
@@ -99,6 +90,15 @@ class PreNorm(nn.Module):
         return self.fn(x, **kwargs)
     
 
+class LearnableSigmoid(nn.Module):
+    def __init__(self, in_features, beta=1):
+        super().__init__()
+        self.beta = beta
+        self.slope = nn.Parameter(torch.ones(in_features))
+        self.slope.requiresGrad = True
+
+    def forward(self, x):
+        return self.beta * torch.sigmoid(self.slope * x)
 
 #####Discriminator loss functions
 
@@ -106,7 +106,6 @@ def metric_score_loss(clean, noisy, sr=16000):
     try:
         metrics = compute_metrics(clean, noisy, sr, 0)
         metrics = np.array(metrics)
-        
     except:
         print("Error in SSNR and STOI calculation")
     return metrics[4]+metrics[5]
