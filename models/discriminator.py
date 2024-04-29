@@ -1,37 +1,38 @@
 import torch
 import torch.nn as nn
 from utils import LearnableSigmoid
+from dimensions import *
 
 class Discriminator(nn.Module):
-    def __init__(self, ndf, in_channel=2):
+    def __init__(self, depth_feature_maps, in_channel=2):
         super().__init__()
         self.layers = nn.Sequential(
             nn.utils.spectral_norm(
-                nn.Conv2d(in_channel, ndf, (4, 4), (2, 2), (1, 1), bias=False)
+                nn.Conv2d(in_channel, depth_feature_maps, (4, 4), (2, 2), (1, 1), bias=False)
             ),
-            nn.InstanceNorm2d(ndf, affine=True),
-            nn.PReLU(ndf),
+            nn.InstanceNorm2d(depth_feature_maps, affine=True),
+            nn.PReLU(depth_feature_maps),
             nn.utils.spectral_norm(
-                nn.Conv2d(ndf, ndf * 2, (4, 4), (2, 2), (1, 1), bias=False)
+                nn.Conv2d(depth_feature_maps, depth_feature_maps * 2, (4, 4), (2, 2), (1, 1), bias=False)
             ),
-            nn.InstanceNorm2d(ndf * 2, affine=True),
-            nn.PReLU(2 * ndf),
+            nn.InstanceNorm2d(depth_feature_maps * 2, affine=True),
+            nn.PReLU(2 * depth_feature_maps),
             nn.utils.spectral_norm(
-                nn.Conv2d(ndf * 2, ndf * 4, (4, 4), (2, 2), (1, 1), bias=False)
+                nn.Conv2d(depth_feature_maps * 2, depth_feature_maps * 4, (4, 4), (2, 2), (1, 1), bias=False)
             ),
-            nn.InstanceNorm2d(ndf * 4, affine=True),
-            nn.PReLU(4 * ndf),
+            nn.InstanceNorm2d(depth_feature_maps * 4, affine=True),
+            nn.PReLU(4 * depth_feature_maps),
             nn.utils.spectral_norm(
-                nn.Conv2d(ndf * 4, ndf * 8, (4, 4), (2, 2), (1, 1), bias=False)
+                nn.Conv2d(depth_feature_maps * 4, depth_feature_maps * 8, (4, 4), (2, 2), (1, 1), bias=False)
             ),
-            nn.InstanceNorm2d(ndf * 8, affine=True),
-            nn.PReLU(8 * ndf),
+            nn.InstanceNorm2d(depth_feature_maps * 8, affine=True),
+            nn.PReLU(8 * depth_feature_maps),
             nn.AdaptiveMaxPool2d(1),
             nn.Flatten(),
-            nn.utils.spectral_norm(nn.Linear(ndf * 8, ndf * 4)),
-            nn.Dropout(0.3),
-            nn.PReLU(4 * ndf),
-            nn.utils.spectral_norm(nn.Linear(ndf * 4, 1)),
+            nn.utils.spectral_norm(nn.Linear(depth_feature_maps * 8, depth_feature_maps * 4)),
+            nn.Dropout(DISCRIMINATOR_DROPOUT_RATE),
+            nn.PReLU(4 * depth_feature_maps),
+            nn.utils.spectral_norm(nn.Linear(depth_feature_maps * 4, 1)),
             LearnableSigmoid(1),
         )
 

@@ -1,13 +1,16 @@
 import os
 import torch
 import logging
-from constants import *
+from hyperparameters import *
+from dimensions import *
 from models.generator import TSCNet
 from models import discriminator
 from data import dataloader
 from torch.nn.functional import F
 from utils import power_compress, power_uncompress
 from torchinfo import summary
+from constants import *
+from hyperparameters import *
 
 logging.basicConfig(level=logging.INFO)
 
@@ -31,8 +34,7 @@ class Trainer:
         )
 
     def setup_discriminator(self):
-        ndf = 16
-        self.discriminator = discriminator.Discriminator(ndf=ndf).cuda()
+        self.discriminator = discriminator.Discriminator(ndf=DISCRIMINATOR_DEPTH_OF_FEATURE_MAPS).cuda()
         summary(
             self.discriminator,
             [

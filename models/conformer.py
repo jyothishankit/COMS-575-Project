@@ -2,17 +2,7 @@ import torch.nn.functional as F
 from einops.layers.torch import Rearrange
 import torch.nn as nn
 from utils import *
-
-class DepthWiseConv1d(nn.Module):
-    def __init__(self, chan_in, chan_out, kernel_size, padding):
-        super().__init__()
-        self.padding = padding
-        self.conv = nn.Conv1d(chan_in, chan_out, kernel_size, groups=chan_in)
-
-    def forward(self, x):
-        x = F.pad(x, self.padding)
-        return self.conv(x)
-
+from hyperparameters import *
 
 # attention, feedforward, and conv module
 
@@ -50,7 +40,7 @@ class ConformerConvModule(nn.Module):
         padding = calc_same_padding(kernel_size) if not causal else (kernel_size - 1, 0)
         self.net = nn.Sequential(
             nn.LayerNorm(dim),
-            Rearrange("b n c -> b c n"),
+            Rearrange(CONFORMER_FREQUENCY_REARRANGEMENT),
             nn.Conv1d(dim, inner_dim * 2, 1),
             GLU(dim=1),
             DepthWiseConv1d(
@@ -59,7 +49,7 @@ class ConformerConvModule(nn.Module):
             nn.BatchNorm1d(inner_dim) if not causal else nn.Identity(),
             Swish(),
             nn.Conv1d(inner_dim, dim, 1),
-            Rearrange("b c n -> b n c"),
+            Rearrange(CONFORMER_TIME_REARRANGEMENT),
             nn.Dropout(dropout),
         )
 
@@ -69,20 +59,19 @@ class ConformerConvModule(nn.Module):
 
 # Conformer Block
 
-
 class ConformerBlock(nn.Module):
     def __init__(
         self,
         *,
         dim,
-        dim_head=64,
-        heads=8,
-        ff_mult=4,
-        conv_expansion_factor=2,
-        conv_kernel_size=31,
-        attn_dropout=0.0,
-        ff_dropout=0.0,
-        conv_dropout=0.0
+        dim_head=CONFORMER_DIMENSION_HEADS,
+        heads=CONFORMER_HEADS,
+        ff_mult=CONFORMER_FEED_FORWARD_MULTIPLIER,
+        conv_expansion_factor=CONFORMER_CONV_EXPANSION_FACTOR,
+        conv_kernel_size=CONFORMER_CONV_KERNEL_SIZE,
+        attn_dropout=CONFORMER_ATTENTION_DROPOUT,
+        ff_dropout=CONFORMER_FEED_FORWARD_DROPOUT,
+        conv_dropout=CONFORMER_CONV_DROPOUT
     ):
         super().__init__()
         self.ff1 = FeedForward(dim=dim, mult=ff_mult, dropout=ff_dropout)
@@ -91,7 +80,7 @@ class ConformerBlock(nn.Module):
         )
         self.conv = ConformerConvModule(
             dim=dim,
-            causal=False,
+            causal=CONFORMER_CON_CAUSAL_ENABLED_FLAG,
             expansion_factor=conv_expansion_factor,
             kernel_size=conv_kernel_size,
             dropout=conv_dropout,

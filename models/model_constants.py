@@ -1,7 +1,0 @@
-
-#############GENERATOR CONSTANTS
-
-#############DISCRIMINATOR CONSTANTS
-
-#############EVALUATION CONSTANTS
-

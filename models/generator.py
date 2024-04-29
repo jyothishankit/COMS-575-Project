@@ -1,7 +1,7 @@
 from models.conformer import ConformerBlock
 import torch
 import torch.nn as nn
-
+from hyperparameters import *
 
 class DilatedDenseNet(nn.Module):
     def __init__(self, depth=4, in_channels=64):
@@ -75,7 +75,7 @@ class TSCB(nn.Module):
         self.time_conformer = ConformerBlock(
             dim=num_channel,
             dim_head=num_channel // 4,
-            heads=4,
+            heads=TIME_CONFORMER_HEADS,
             conv_kernel_size=31,
             attn_dropout=0.2,
             ff_dropout=0.2,
