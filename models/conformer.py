@@ -4,33 +4,6 @@ import torch.nn as nn
 from utils import *
 from dimensions import *
 
-# attention, feedforward, and conv module
-
-
-class Scale(nn.Module):
-    def __init__(self, scale, fn):
-        super().__init__()
-        self.fn = fn
-        self.scale = scale
-
-    def forward(self, x, **kwargs):
-        return self.fn(x, **kwargs) * self.scale
-
-
-class FeedForward(nn.Module):
-    def __init__(self, dim, mult=4, dropout=0.0):
-        super().__init__()
-        self.net = nn.Sequential(
-            nn.Linear(dim, dim * mult),
-            Swish(),
-            nn.Dropout(dropout),
-            nn.Linear(dim * mult, dim),
-            nn.Dropout(dropout),
-        )
-    def forward(self, x):
-        return self.net(x)
-
-
 class ConformerConvModule(nn.Module):
     def __init__(
         self, dim, causal=False, expansion_factor=2, kernel_size=31, dropout=0.0
