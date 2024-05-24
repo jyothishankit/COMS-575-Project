@@ -20,16 +20,20 @@ pip install -r requirements.txt
 pip install --extra-index-url https://download.pytorch.org/whl/cu113/ "torch==1.10.0+cu113"
 pip install --extra-index-url https://download.pytorch.org/whl/cu113/ "torchaudio==0.10.0+cu113"
 7) Make sure to check if GPU enabled devices can be found:
->>python
->>import torch
->>torch.cuda.device_count()
-8) Copy contents of Dataset from the below link:
-
+>>python<br>
+>>import torch<br>
+>>torch.cuda.device_count()<br>
+8) Copy contents of Dataset from the below link:<br>
+VCTK Demand Datset UK: https://datashare.ed.ac.uk/handle/10283/2791 <br>
 
 If needed to remove entire model cache:
 Delete contents of saved_model and run below command in interpreter:
 torch.cuda.empty_cache()
+
 9) Initiate job in SLURM cluster using below command:
 sbatch train575.sh
 (Run "scancel -u user_name" before this to kill running jobs)
-10) Change the contents of train575.sh to 
+10) Change the contents of train575.sh to allow appropriate virtual env activation with name used.
+11) Samples of generated clean from noisy track can be found in <br>
+Generated clean: https://github.com/jyothishankit/COMS-575-Project/tree/main/sample_clean<br>
+Generated noisy: https://github.com/jyothishankit/COMS-575-Project/tree/main/sample_noisy<br>
