@@ -1,3 +1,8 @@
+GENESIS is a background noise removal machine learning model based on CMGAN and MetricGAN<br>
+It can remove any kind of background noise<br>
+Detailed report:<br>
+https://drive.google.com/file/d/182xXtN-PS_Fk1I55BTWytQ9M-ihrcxN-/view?usp=sharing<br><br>
+
 Steps to run GENESIS on Nova CLuster:<br>
 1) Install Python 3.9.16.<br>
 https://www.python.org/downloads/release/python-3916/<br>
